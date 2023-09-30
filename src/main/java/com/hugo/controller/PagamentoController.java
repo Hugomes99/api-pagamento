@@ -12,53 +12,41 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hugo.exeception.ResourceNotFoundException;
 import com.hugo.model.Pagamento;
-import com.hugo.repository.PagamentoRepository;
+import com.hugo.service.PagamentoService;
+
+import jakarta.annotation.Resource;
 
 
 @RestController
 @RequestMapping("/api/pagamento")
-
 public class PagamentoController {
 
-    
-    private final PagamentoRepository pagamentoRepository;
-
-    public PagamentoController(PagamentoRepository pagamentoRepository) {
-        this.pagamentoRepository = pagamentoRepository;
-    }
+    @Resource
+    private PagamentoService service;
 
     @GetMapping
     public List<Pagamento> getAllPagamentos() {
-        return pagamentoRepository.findAll();
+        return service.getAllPagamento();
     }
 
     @GetMapping("/{id}")
     public Pagamento getPagamentoById(@PathVariable Long id) {
-        return pagamentoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Pagamento não encontrado com ID " + id));
+        return service.searchPagamentoByCodigo(id);
     }
 
     @PostMapping
     public Pagamento createPagamento(@RequestBody Pagamento pagamento) {
-        return pagamentoRepository.save(pagamento);
+        return service.createPayment(pagamento);
     }
 
     @PutMapping("/{id}")
     public Pagamento updatePagamento(@PathVariable Long id, @RequestBody Pagamento updatedPagamento) {
-        return pagamentoRepository.findById(id)
-                .map(pagamento -> {
-                    pagamento.setMetodoPagamento(updatedPagamento.getMetodoPagamento());
-                    pagamento.setValor(updatedPagamento.getValor());
-                    return pagamentoRepository.save(pagamento);
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("\r\n" + //
-                        "Pagamento não encontrado com ID " + id));
+        return service.searchPagamentoByCodigo(id);
     }
 
     @DeleteMapping("/{id}")
     public void deletePagamento(@PathVariable Long id) {
-        pagamentoRepository.deleteById(id);
+        service.searchPagamentoByCodigo(id);
     }
 }
