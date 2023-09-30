@@ -31,80 +31,47 @@ public class PagamentoService {
     @Resource
     private PagamentoRepository pagamentoRepository;
 
-    @PersistenceContext
-    EntityManager entityManager;
-
-    public List<Pagamento> list(Pagamento pagamento) {
-
-        if (pagamento != null &&
-                (pagamento.getCodigo() != null ||
-                        pagamento.getCpfCnpj() != null ||
-                        pagamento.getStatus() != null)) {
-
-            CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-            CriteriaQuery<Pagamento> query = builder.createQuery(Pagamento.class);
-            Root<Pagamento> root = query.from(Pagamento.class);
-
-            List<Predicate> predicates = new ArrayList<Predicate>();
-
-            if (pagamento.getCodigo() != null)
-                predicates.add(builder.like(root.get("codigo"), pagamento.getCodigo().toString()));
-
-            if (pagamento.getCpfCnpj() != null)
-                predicates.add(builder.like(root.get("cpfCnpj"), pagamento.getCpfCnpj()));
-
-            if (pagamento.getStatus() != null)
-                predicates.add(builder.like(root.get("status"), pagamento.getStatus()));
-
-            query.where(predicates.toArray(new Predicate[predicates.size()]));
-
-            return entityManager.createQuery(query).getResultList();
+        
+        public PagamentoService(PagamentoRepository pagamentoRepository) {
+            this.pagamentoRepository = pagamentoRepository;
         }
-
-        return pagamentoRepository.findAll();
+    
+        public Pagamento createPayment(Pagamento pagamento) {
+            return pagamentoRepository.save(pagamento);
+        }
+    
+        public Pagamento updatePaymentStatus(Long pagamentoId, PagamentoStatus newStatus) {
+            Pagamento pagamento = pagamentoRepository.findById(pagamentoId)
+                    .orElseThrow(() -> new PaymentNotFoundException("Pagamento não encontrado com ID " + pagamentoId));
+    
+            if (pagamento.getPagamentoStatus() == PagamentoStatus.PROCESSADO_SUCESSO) {
+                throw new InvalidPaymentStatusException("Não é possível alterar o status de um pagamento processado com sucesso.");
+            }
+    
+            if (pagamento.getPagamentoStatus() == PagamentoStatus.PROCESSADO_FALHA &&
+                newStatus != PagamentoStatus.PROCESSADO_PENDENTE) {
+                throw new InvalidPaymentStatusException("
+                Falha no pagamento só pode ser alterada para PROCESSADO_PENDENTE.");
+            }
+    
+            pagamento.setPagamentoStatus(newStatus);
+            return pagamentoRepository.save(pagamento);
+        }
+    
+        public List<Pagamento> getAllPagamento() {
+            return pagamentoRepository.findAll();
+        }
+    
+        public List<Pagamento> searchPagamentoByCodigo(Long codigo) {
+            return PagamentoRepository.findByCodigo(codigo);
+        }
+    
+        public List<Pagamento> searchPagamentoByCpfCnpj(String cpfCnpj) {
+            return pagamentoRepository.findByCpfCnpj(cpfCnpj);
+        }
+    
+        public List<Pagamento> searchPagamentoByStatus(PagamentoStatus pagamentoStatus) {
+            return pagamentoRepository.findByPagamentoStatus(pagamentoStatus);
+        }
     }
-
-    public Pagamento create(Pagamento pagamento) {
-        if (pagamento.getMetodoPagamento().equals(PagamentoTipo.PG_PIX) ||
-                pagamento.getMetodoPagamento().equals(PagamentoTipo.PG_BOLETO))
-            pagamento.setNumeroCartao(null);
-
-        return pagamentoRepository.save(pagamento);
-    }
-
-    public ResponseEntity<Pagamento> update(Pagamento pagamento) {
-        return pagamentoRepository.findById(pagamento.getId())
-                .map(registro -> {
-
-                    if (((registro.getStatus().equals(PagamentoStatus.PROCESSADO_PENDENTE)
-                            && !pagamento.getStatus().equals(PagamentoStatus.PROCESSADO_PENDENTE)) ||
-                            (registro.getStatus().equals(PagamentoStatus.PROCESSADO_FALHA)
-                                    && pagamento.getStatus().equals(PagamentoStatus.PROCESSADO_PENDENTE)))
-                            &&
-                            (registro.getStatus().equals(PagamentoStatus.PROCESSADO_FALHA)
-                                    || registro.getStatus().equals(PagamentoStatus.PROCESSADO_PENDENTE) ||
-                                    registro.getStatus().equals(PagamentoStatus.PROCESSADO_SUCESSO))) {
-                        registro.setStatus(pagamento.getStatus());
-                        Pagamento updated = pagamentoRepository.save(registro);
-
-                        return ResponseEntity.ok().body(updated);
-                    }
-
-                    return ResponseEntity.ok().body(registro);
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    public ResponseEntity<Void> delete(Pagamento pagamento) {
-        return pagamentoRepository.findById(pagamento.getId())
-                .map(registro -> {
-
-                    if (registro.getStatus().equals(PagamentoStatus.PROCESSADO_PENDENTE))
-                        pagamentoRepository.deleteById(pagamento.getId());
-
-                    return ResponseEntity.noContent().<Void>build();
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-}
+    
