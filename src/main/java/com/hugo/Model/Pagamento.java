@@ -15,16 +15,16 @@ public class Pagamento {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "codigo-debito", nullable = false)
+    @Column(name = "codigo_debito", nullable = false)
     private Integer codigo;
 
-    @Column(name = "cpf-cnpj", length = 15, nullable = false)
+    @Column(name = "cpf_cnpj", length = 15, nullable = false)
     private String cpfCnpj;
 
-    @Column(name = "metodo-pagamento", length = 20, nullable = false)
+    @Column(name = "metodo_pagamento", length = 20, nullable = false)
     private String metodoPagamento;
 
-    @Column(name = "numero-cartao", length = 13, nullable = true)
+    @Column(name = "numero_cartao", length = 13, nullable = true)
     private String numeroCartao;
 
     @Column(name = "valor", nullable = false, precision = 2)
