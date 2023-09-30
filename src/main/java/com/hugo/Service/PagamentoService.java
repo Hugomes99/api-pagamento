@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.ArrayList;
 
+import jakarta.annotation.Resource;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
@@ -26,7 +27,9 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class PagamentoService {
 
-    private final PagamentoRepository pagamentoRepository;
+
+    @Resource
+    private PagamentoRepository pagamentoRepository;
 
     @PersistenceContext
     EntityManager entityManager;
