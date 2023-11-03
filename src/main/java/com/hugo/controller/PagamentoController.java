@@ -39,7 +39,7 @@ public class PagamentoController {
         return service.createPayment(pagamento);
     }
 
-    @PutMapping("/atualizar_tatus/{id}")
+    @PutMapping("/atualizar_status/{id}")
     public Pagamento updatePagamento(@PathVariable Long id, @RequestBody Pagamento updatedPagamento) {
         return service.searchPagamentoByCodigo(id);
     }
