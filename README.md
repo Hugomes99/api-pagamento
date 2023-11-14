@@ -23,7 +23,7 @@ Antes de começar a usar a API de Pagamento, certifique-se de ter as seguintes f
 
 1. Clone este repositório em sua máquina local:
 
-   git clone https://github.com/seu-usuario/seu-projeto.git
+   git clone https://github.com/Hugomes99/api-pagamento.git
 
 2. O banco de dados está configurado como H2 com as configurações no arquivo `application.properties`
 
